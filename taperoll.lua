@@ -9,6 +9,8 @@
 --
 -- ?
 
+
+engine.name="Taperoll"
 local seconds_max=250
 playpos={
   rec=0,
@@ -22,6 +24,7 @@ playpos={
 local position_changed=false
 local shift=false
 do_loop=0
+go_loop=0
 
 function init()
   -- initialize array to hold the current times
@@ -63,6 +66,20 @@ function init()
   timer:start()
 
   debounce_start=15
+
+  osc.event = function(path, args, from)
+    --print(path)
+    if go_loop==1 then 
+      print("go_loop 1")
+      params:set("loop"..(params:get("rate")>=0 and "1" or "2"),playpos.current)
+      go_loop=0
+    end
+    if go_loop==2 then 
+      print("go_loop 2")
+      params:set("loop"..(params:get("rate")>=0 and "2" or "1"),playpos.current) 
+      go_loop=0
+    end
+  end
 end
 
 
@@ -213,9 +230,9 @@ function key(k,z)
     elseif k==2 then
       position_changed=false
       if do_loop==0 then 
-        params:set("loop1",playpos.current)
+        params:set("loop"..(params:get("rate")>=0 and "1" or "2"),playpos.current)
       elseif do_loop==1 then 
-        params:set("loop2",playpos.current) 
+        params:set("loop"..(params:get("rate")>=0 and "2" or "1"),playpos.current) 
       elseif do_loop==2 then
         -- TODO: some weird bug happens when making loops going backwards
         if params:get("rate")<0 then 
