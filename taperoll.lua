@@ -216,7 +216,7 @@ function key(k,z)
         params:set("loop1",playpos.current)
       elseif do_loop==1 then 
         params:set("loop2",playpos.current) 
-      else 
+      elseif do_loop==2 then
         -- TODO: some weird bug happens when making loops going backwards
         if params:get("rate")<0 then 
           params:set("loop2",0)
@@ -261,6 +261,9 @@ end
 
 function redraw()
   screen.clear()
+  if do_loop>0 then 
+    screen.display_png(_path.code.."taperoll/lib/loop"..do_loop..".png",115,0)
+  end
   local current=playpos.current 
   if playpos.update>0 then 
     current=playpos.new
@@ -275,17 +278,23 @@ function redraw()
     m=m*(1-f)+n*f
     local tt=m-playpos.tt_start_beats+playpos.tt_start_time
     local mtt=math.floor(tt)
+    screen.level(5)
     screen.font_face(40)
     screen.move(10,10)
     screen.font_size(12)
     screen.text(os.date('%B %d',mtt))
     screen.move(10,30)
     local ss=string.format("%.2f",tt-mtt)
+    screen.level(15)
     ss=ss:sub(2)
     screen.font_face(5)
     screen.font_size(22)
-    screen.text(os.date('%I:%M:%S', mtt)..ss)
+    screen.text(os.date('%I:%M:%S', mtt))
+    screen.font_size(12)
+    screen.move(93,23)
+    screen.text(ss)
   end
+
   screen.update()
 end
 
