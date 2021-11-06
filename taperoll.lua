@@ -52,7 +52,7 @@ function init()
       loop(x,params:get("loop2"))
     end
   end)
-  params:add_control("loop2","loop end",controlspec.new(0,seconds_max,'lin',0.05,1,'s',0.05/seconds_max))
+  params:add_control("loop2","loop end",controlspec.new(0,seconds_max,'lin',0.05,seconds_max,'s',0.05/seconds_max))
   params:set_action("loop2",function(x)
     loop(params:get("loop1"),x)
   end)
@@ -280,21 +280,41 @@ function redraw()
   screen.clear()
   if do_loop>0 then 
     screen.display_png(_path.code.."taperoll/lib/loop"..do_loop..".png",115,0)
+    if do_loop==1 then 
+      local tt,mtt=get_time_from_position(params:get("loop1"))
+      local ss=string.format("%.2f",tt-mtt)
+      screen.level(5)
+      screen.font_face(1)
+      screen.font_size(8)
+      screen.move(10,50)
+      screen.text(os.date('%I:%M:%S', mtt)..ss:sub(2))
+    else
+      local tt,mtt=get_time_from_position(params:get("loop1"))
+      local ss=string.format("%.2f",tt-mtt)
+      local tt2,mtt2=get_time_from_position(params:get("loop2"))
+      local ss2=string.format("%.2f",tt2-mtt2)
+      screen.level(5)
+      screen.font_face(1)
+      screen.font_size(8)
+      screen.move(10,50)
+      screen.text(os.date('%I:%M:%S', mtt)..ss:sub(2).." - "..os.date('%I:%M:%S', mtt2)..ss2:sub(2))
+    end
+  elseif position_changed==true then 
+    tt,mtt=get_time_from_position(params:get("position"))
+    local ss=string.format("%.2f",tt-mtt)
+    screen.level(5)
+    screen.font_face(1)
+    screen.font_size(8)
+    screen.move(10,50)
+    screen.text(os.date('%I:%M:%S', mtt)..ss:sub(2))
   end
+
   local current=playpos.current 
   if playpos.update>0 then 
     current=playpos.new
   end
-  local m=playpos.tt[math.floor(current)+1]
-  local f=current-math.floor(current)
-  local n=playpos.tt[math.floor(current)+2]
-  if n==nil then 
-    n=m+1
-  end
-  if m~=nil then
-    m=m*(1-f)+n*f
-    local tt=m-playpos.tt_start_beats+playpos.tt_start_time
-    local mtt=math.floor(tt)
+  tt,mtt=get_time_from_position(current)
+  if tt~=nil then
     screen.level(5)
     screen.font_face(40)
     screen.move(10,10)
@@ -302,8 +322,8 @@ function redraw()
     screen.text(os.date('%B %d',mtt))
     screen.move(10,30)
     local ss=string.format("%.2f",tt-mtt)
-    screen.level(15)
     ss=ss:sub(2)
+    screen.level(15)
     screen.font_face(5)
     screen.font_size(22)
     screen.text(os.date('%I:%M:%S', mtt))
@@ -313,6 +333,22 @@ function redraw()
   end
 
   screen.update()
+end
+
+function get_time_from_position(position)
+  local m=playpos.tt[math.floor(position)+1]
+  local f=position-math.floor(position)
+  local n=playpos.tt[math.floor(position)+2]
+  if n==nil then 
+    n=m+1
+  end
+  if m==nil then 
+    do return end
+  end
+  m=m*(1-f)+n*f
+  local tt=m-playpos.tt_start_beats+playpos.tt_start_time
+  local mtt=math.floor(tt)
+  return tt,mtt
 end
 
 function rerun()
